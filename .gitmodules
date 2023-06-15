@@ -1,0 +1,3 @@
+[submodule "lib/pico-ssd1306"]
+	path = lib/pico-ssd1306
+	url = git@github.com:Harbys/pico-ssd1306
