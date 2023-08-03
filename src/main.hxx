@@ -10,6 +10,7 @@
 #define GRAPH_BARS 40
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
+// How long each screen should be displayed (seconds)
 #define SCREEN_TIME 10
 
 // The size of the serial read buffer (512 + 1)

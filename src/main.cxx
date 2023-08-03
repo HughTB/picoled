@@ -5,7 +5,7 @@
 #include "main.hxx"
 
 int main() {
-    // Initialise serial port
+    // Initialise serial port for logging
     stdio_init_all();
 
     // Initialise the LED GPIO pin
@@ -42,6 +42,7 @@ int main() {
 
     printf("PicOLED successfully initialised\n");
 
+// Ignore endless loop warning; we want this to run forever!
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     while (true) {

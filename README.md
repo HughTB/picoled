@@ -1,8 +1,7 @@
 # PicOLED
 
-PicOLED is a personal project which aims to create a small information display which can be connected to a computer to
-show important information, such as CPU or Memory usage at a glance. My intention is to fix it inside my computer's
-case, behind the tempered glass side panel
+PicOLED is a personal project which aims to create a small USB/serial display which can be connected to a computer to
+show important information, such as CPU or Memory usage at a glance.
 
 ## Getting Started
 
