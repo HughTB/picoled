@@ -1,31 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include "pico/stdlib.h"
-#include "ssd1306.h"
-#include "textRenderer/TextRenderer.h"
-#include "hardware/i2c.h"
 
-#define LED_PIN PICO_DEFAULT_LED_PIN
-
-#define GRAPH_BARS 40
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 32
-#define SCREEN_TIME 10
-
-using namespace pico_ssd1306;
-
-enum {
-    display_cpu = 0,
-    display_mem,
-    display_final,
-};
-
-// Update the values in graph_values, shifting each existing value by 1 and adding latest_value to the 0th position
-void update_graph_values(uint8_t* values, uint8_t num_values, uint8_t latest_value);
-// Draw a graph on the screen, at the given x and y position
-void draw_graph(SSD1306* display, uint8_t x_pos, uint8_t y_pos, const uint8_t* values, int num_values);
-// Draw the entire graph screen (draw label, percentage and graph)
-void display_graph_screen(SSD1306* display, const char* label_text, const uint8_t* values, int num_values);
+#include "main.hxx"
 
 int main() {
     srand(time_us_32());
@@ -124,12 +101,16 @@ void draw_graph(SSD1306* display, uint8_t x_pos, uint8_t y_pos, const uint8_t* v
 }
 
 void display_graph_screen(SSD1306* display, const char* label_text, const uint8_t* values, int num_values) {
-    // Create the bottom text using the first value in the list
+    // Create the bottom text using the first value in the list, displaying a percent sign if <100, or just the number 100
     char bottom_text[4];
     snprintf(bottom_text, 4, "%2d%%", values[0]);
 
+    // Ensure that only 6 characters (+ null terminator) from label_text are drawn to the display
+    char top_text[7];
+    snprintf(top_text, 7, "%s", label_text);
+
     // Draw the label text and current percentage
-    drawText(display, font_8x8, label_text, 0, 0);
+    drawText(display, font_8x8, top_text, 0, 0);
     drawText(display, font_16x32, bottom_text, 0, 6);
 
     // Draw the graph
