@@ -4,6 +4,11 @@
 #include "pico/stdlib.h"
 
 #include "main.hxx"
+#include "displays.hxx"
+
+uint8_t cpu_temp = 0;
+uint8_t gpu_temp = 0;
+bool gpu_present = false;
 
 int main() {
     // Initialise serial port for logging
@@ -32,7 +37,7 @@ int main() {
     auto mem_values = (uint8_t*)calloc(GRAPH_BARS, sizeof(uint8_t));
     size_t mem_value_count = GRAPH_BARS;
 
-    int current_screen = display_mem;
+    int current_screen = display_cpu;
 
     auto message_buffer = (char*)calloc(MESSAGE_BUFFER_SIZE, sizeof(char));
 
@@ -40,6 +45,8 @@ int main() {
 
     uint64_t frame_start_time;
     uint64_t frame_end_time;
+
+    uint missed_reads = 0;
 
     printf("PicOLED successfully initialised\n");
 
@@ -60,20 +67,42 @@ int main() {
             case display_mem:
                 display_graph_screen(&display, "MEM:", mem_values, mem_value_count);
                 break;
+            case display_temps:
+                char text[21];
+
+                if (gpu_present)
+                    snprintf(text, 21, "CPU: %3d CGPU: %3d C", cpu_temp, gpu_temp);
+                else
+                    snprintf(text, 21, "CPU: %3d C", cpu_temp);
+
+                display_generic_screen(&display, text);
+                break;
             default:
                 continue;
+        }
+
+        // If there is no communication from the host, just draw nothing on the screen
+        // This will still use power as both the pico and display are left on, but the SSD1306 library does not currently
+        // support turning the display on/off. On the other hand, the RP2040 draws very little power and since the
+        // display is an OLED, it should use little to no power when not displaying any pixels
+        if (missed_reads >= SLEEP_AFTER_MISSED_READS) {
+            display.clear();
         }
 
         // Send the data to the display
         display.sendBuffer();
 
         // Attempt to read a message from the serial interface, timeout after using half of the frame-time
-        if (read_line_timeout(TARGET_FRAME_TIME / 2, message_buffer, MESSAGE_BUFFER_SIZE) > 0)
+        if (read_line_timeout(TARGET_FRAME_TIME / 2, message_buffer, MESSAGE_BUFFER_SIZE) > 0) {
             parse_message(message_buffer, cpu_values, cpu_value_count, mem_values, mem_value_count);
-        else {
+            missed_reads = 0;
+        } else {
             // At least for now, if no message is received, just shift the same value into the graph again
             update_graph_values(cpu_values, cpu_value_count, cpu_values[0]);
             update_graph_values(mem_values, mem_value_count, mem_values[0]);
+
+            // Also add to the number of missed reads
+            missed_reads++;
         }
 
         // If more than SCREEN_TIME seconds have passed, move on to the next screen
@@ -106,38 +135,6 @@ void update_graph_values(uint8_t* values, size_t num_values, uint8_t latest_valu
     }
 
     values[0] = latest_value;
-}
-
-void draw_graph(SSD1306* display, uint8_t x_pos, uint8_t y_pos, const uint8_t* values, size_t num_values) {
-    uint bar_width = (SCREEN_WIDTH - x_pos) / num_values;
-
-    // For each bar of the graph,
-    for (size_t i = num_values; i > 0; i--) {
-        // Draw each bar from bottom to top,
-        for (int j = 0; j < (values[i] * SCREEN_HEIGHT) / 100; j++) {
-            // Draw each row bar_width times
-            for (int k = 0; k < bar_width; k++) {
-                display->setPixel((int16_t)(x_pos + (bar_width * num_values) - (i * bar_width) - k), (int16_t)(y_pos + SCREEN_HEIGHT - j));
-            }
-        }
-    }
-}
-
-void display_graph_screen(SSD1306* display, const char* label_text, const uint8_t* values, size_t num_values) {
-    // Create the bottom text using the first value in the list, displaying a percent sign if <100, or just the number 100
-    char bottom_text[4];
-    snprintf(bottom_text, 4, "%2d%%", values[0]);
-
-    // Ensure that only 6 characters (+ null terminator) from label_text are drawn to the display
-    char top_text[7];
-    snprintf(top_text, 7, "%s", label_text);
-
-    // Draw the label text and current percentage
-    drawText(display, font_8x8, top_text, 0, 0);
-    drawText(display, font_16x32, bottom_text, 0, 6);
-
-    // Draw the graph
-    draw_graph(display, 48, 0, values, num_values);
 }
 
 int read_line_timeout(uint timeout_ms, char* buffer, size_t buffer_size) {
@@ -182,7 +179,12 @@ void parse_message(char* message, uint8_t* cpu_values, size_t cpu_value_count, u
             update_graph_values(cpu_values, cpu_value_count, strtol(value, nullptr, 10));
         } else if (!strcmp(key, "mem")) {
             update_graph_values(mem_values, mem_value_count, strtol(value, nullptr, 10));
-        } else if (!strcmp(key, "ident")) {
+        } else if (!strcmp(key, "cpu_temp")) {
+            cpu_temp = strtol(value, nullptr, 10);
+        } else if (!strcmp(key, "gpu_temp")) {
+            gpu_temp = strtol(value, nullptr, 10);
+            gpu_present = (gpu_temp != 0);
+        } else if (!strcmp(key, "ident")) { // This is to allow the driver to identify PicOLED devices
             std::cout << "miaow" << std::endl;
         }
     }

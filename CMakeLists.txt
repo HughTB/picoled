@@ -11,6 +11,8 @@ add_subdirectory(lib/pico-ssd1306)
 add_executable(picoled
     src/main.cxx
     src/main.hxx
+    src/displays.cxx
+    src/displays.hxx
 )
 
 target_link_libraries(picoled
