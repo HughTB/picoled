@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include "pico/stdlib.h"
 
 #include "main.hxx"
@@ -173,14 +174,16 @@ void parse_message(char* message, uint8_t* cpu_values, size_t cpu_value_count, u
         char* key = strtok(key_value_pair, ":");
         char* value = strtok(nullptr, ":");
 
-        // If either the key or value is null, skip this key-value pair
-        if (key == nullptr || value == nullptr) continue;
+        // If either the key is null, skip this key-value pair
+        if (key == nullptr) continue;
 
         // This is going to be very long and ugly, but C++ cannot switch case on strings, so there you go
         if (!strcmp(key, "cpu")) {
             update_graph_values(cpu_values, cpu_value_count, strtol(value, nullptr, 10));
         } else if (!strcmp(key, "mem")) {
             update_graph_values(mem_values, mem_value_count, strtol(value, nullptr, 10));
+        } else if (!strcmp(key, "ident")) {
+            std::cout << "miaow" << std::endl;
         }
     }
 }
