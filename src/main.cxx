@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "pico/stdlib.h"
+#include "pico/unique_id.h"
 
 #include "main.hxx"
 #include "displays.hxx"
@@ -9,6 +10,7 @@
 uint8_t cpu_temp = 0;
 uint8_t gpu_temp = 0;
 bool gpu_present = false;
+char* board_id;
 
 int main() {
     // Initialise serial port for logging
@@ -31,6 +33,10 @@ int main() {
 
     SSD1306 display = SSD1306(i2c0, 0x3c, Size::W128xH32);
     display.setOrientation(false);
+
+    // Get the unique identifier of the RP2040
+    board_id = (char*)calloc(2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1, sizeof(char));
+    pico_get_unique_board_id_string(board_id, 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
 
     auto cpu_values = (uint8_t*)calloc(GRAPH_BARS, sizeof(uint8_t));
     size_t cpu_value_count = GRAPH_BARS;
@@ -185,7 +191,7 @@ void parse_message(char* message, uint8_t* cpu_values, size_t cpu_value_count, u
             gpu_temp = strtol(value, nullptr, 10);
             gpu_present = (gpu_temp != 0);
         } else if (!strcmp(key, "ident")) { // This is to allow the driver to identify PicOLED devices
-            std::cout << "miaow" << std::endl;
+            std::cout << "miaow " << board_id << std::endl;
         }
     }
 }
