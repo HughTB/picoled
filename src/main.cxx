@@ -10,6 +10,8 @@
 uint8_t cpu_temp = 0;
 uint8_t gpu_temp = 0;
 bool gpu_present = false;
+bool driver_connected = false;
+int current_screen = 0;
 char* board_id;
 
 int main() {
@@ -43,8 +45,6 @@ int main() {
     auto mem_values = (uint8_t*)calloc(GRAPH_BARS, sizeof(uint8_t));
     size_t mem_value_count = GRAPH_BARS;
 
-    int current_screen = display_cpu;
-
     auto message_buffer = (char*)calloc(MESSAGE_BUFFER_SIZE, sizeof(char));
 
     uint64_t prev_time = time_us_64();
@@ -65,6 +65,10 @@ int main() {
         // Clear the display
         display.clear();
 
+        if (!driver_connected) {
+            current_screen = display_splash;
+        }
+
         // Check which screen should be displayed
         switch (current_screen) {
             case display_cpu:
@@ -83,6 +87,9 @@ int main() {
 
                 display_generic_screen(&display, text);
                 break;
+            case display_splash:
+                display_splash_screen(&display);
+                break;
             default:
                 continue;
         }
@@ -91,7 +98,7 @@ int main() {
         // This will still use power as both the pico and display are left on, but the SSD1306 library does not currently
         // support turning the display on/off. On the other hand, the RP2040 draws very little power and since the
         // display is an OLED, it should use little to no power when not displaying any pixels
-        if (missed_reads >= SLEEP_AFTER_MISSED_READS) {
+        if (missed_reads >= ((driver_connected) ? SLEEP_AFTER : SLEEP_AFTER_SPLASH)) {
             display.clear();
         }
 
@@ -192,6 +199,8 @@ void parse_message(char* message, uint8_t* cpu_values, size_t cpu_value_count, u
             gpu_present = (gpu_temp != 0);
         } else if (!strcmp(key, "ident")) { // This is to allow the driver to identify PicOLED devices
             std::cout << "miaow " << board_id << std::endl;
+            driver_connected = true;
+            current_screen = 0;
         }
     }
 }

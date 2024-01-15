@@ -15,6 +15,7 @@ enum {
     display_mem,
     display_temps,
     display_final,
+    display_splash,
 };
 
 /// \brief Draw a graph on the screen, at the given x and y position
@@ -23,7 +24,7 @@ enum {
 /// \param y_pos The y position of the top-left corner of the graph
 /// \param values Pointer to the graph values to be drawn
 /// \param num_values The number of graph values
-void draw_graph(SSD1306* display, uint8_t x_pos, uint8_t y_pos, const uint8_t* values, size_t num_values);
+void draw_graph(SSD1306* display, uint8_t x_pos, uint8_t y_pos, uint8_t width, uint8_t height, const uint8_t* values, size_t num_values, bool filled = false);
 
 /// \brief Draw the entire graph screen (draw label, percentage and graph)
 /// \param display Pointer to the display to be drawn to
@@ -37,5 +38,7 @@ void display_graph_screen(SSD1306* display, const char* label_text, const uint8_
 /// \param text The text to be drawn to the display (max 20 small or 8 large characters)
 /// \param large Should the text be large?
 void display_generic_screen(SSD1306* display, const char* text, bool large = false);
+
+void display_splash_screen(SSD1306* display);
 
 #endif //PICOLED_DISPLAYS_HXX

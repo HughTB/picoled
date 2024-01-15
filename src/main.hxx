@@ -16,7 +16,9 @@
 
 #define TARGET_FRAME_TIME 500
 // The number of missed reads before going to sleep
-#define SLEEP_AFTER_MISSED_READS 10
+#define SLEEP_AFTER 10
+// The number of missed reads without initial connection before going to sleep
+#define SLEEP_AFTER_SPLASH 60
 
 /// \brief Update the values in graph_values, shifting each existing value by 1 and adding latest_value to the 0th position
 /// \param values Pointer to the graph values to be updated

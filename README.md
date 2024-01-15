@@ -1,6 +1,6 @@
-# PicOLED
+# picOLED
 
-PicOLED is a personal project which aims to create a small USB/serial display which can be connected to a computer to
+picOLED is a personal project which aims to create a small USB/serial display which can be connected to a computer to
 show important information, such as CPU or Memory usage at a glance.
 
 ## Getting Started
@@ -15,7 +15,7 @@ USB-2.0 to Micro-USB cable
 ### Installation
 
 - Coming soon™
-- While the functionality is there for the actual PicOLED device, I still need to write a driver for Linux and/or Windows
+- While the functionality is there for the actual picOLED device, I still need to write a driver for Linux and/or Windows
 
 ## Acknowledgements
 
